@@ -5,11 +5,13 @@ const {
   computeHash,
   cspString,
   getHashes,
-  defaultDirectives
+  defaultDirectives,
+  saveNginxConf
 } = require("./utils");
 
 exports.onPreRenderHTML = (
   {
+    pathname,
     getHeadComponents,
     replaceHeadComponents,
     getPreBodyComponents,
@@ -20,11 +22,16 @@ exports.onPreRenderHTML = (
   const {
     disableOnDev = true,
     reportOnly = false,
+    reportUri = "",
     mergeScriptHashes = true,
     mergeStyleHashes = true,
     mergeDefaultDirectives = true,
-    directives: userDirectives
+    directives: userDirectives,
+    useMetaTag = true,
+    useNginxConf = true,
+    nginxConfFile = ".cache/csp.conf"
   } = userPluginOptions;
+
 
   // early return if plugin is disabled on dev env
   if (process.env.NODE_ENV === "development" && disableOnDev) {
@@ -58,12 +65,22 @@ exports.onPreRenderHTML = (
     })
   };
 
-  const cspComponent = React.createElement("meta", {
-    httpEquiv: `${reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy"}`,
-    content: cspString(csp)
-  });
+  const headerName = reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy"
 
-  let headComponentsWithCsp = [cspComponent, ...getHeadComponents()];
 
-  replaceHeadComponents(headComponentsWithCsp);
+  if (useMetaTag) {
+    const cspComponent = React.createElement("meta", {
+      httpEquiv: headerName,
+      content: cspString(csp)
+    });
+
+    let headComponentsWithCsp = [cspComponent, ...getHeadComponents()];
+
+    replaceHeadComponents(headComponentsWithCsp);
+  }
+
+  if (useNginxConf) {
+    saveNginxConf(nginxConfFile, pathname, headerName, cspString(csp));
+  }
+
 };

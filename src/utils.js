@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const fs = require("fs");
 
 const defaultDirectives = {
   "base-uri": "'self'",
@@ -48,9 +49,31 @@ function getHashes(components, type) {
     .join(" ");
 }
 
+function wrangleLocation(location)
+{
+    if (!(location.endsWith("/") || location.endsWith(".html") || location.endsWith(".htm"))) {
+        location += "/";
+    }
+    if (!(location.startsWith("/")))
+    {
+        location = `/${location}`;
+    }
+    return location;
+}
+
+function saveNginxConf(nginxConfFile, location, headerName, cspString) {
+    const data = `
+        location = ${wrangleLocation(location)} {
+            add_header ${headerName} "${cspString}";
+        }
+`
+    fs.appendFileSync(nginxConfFile, data)
+}
+
 module.exports = {
   computeHash,
   cspString,
   getHashes,
-  defaultDirectives
+  defaultDirectives,
+  saveNginxConf
 };
