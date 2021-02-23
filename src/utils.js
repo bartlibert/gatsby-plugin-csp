@@ -61,13 +61,10 @@ function wrangleLocation(location)
     return location;
 }
 
-function saveNginxConf(nginxConfFile, location, headerName, cspString) {
-    const data = `
-        location = ${wrangleLocation(location)} {
-            add_header ${headerName} "${cspString}";
-        }
-`
-    fs.appendFileSync(nginxConfFile, data)
+function saveNginxConf(nginxConfFile, location, cspString) {
+  const data = `"~^\\${wrangleLocation(location)}index.html$" "${cspString}";
+    `;
+  fs.appendFileSync(nginxConfFile, data);
 }
 
 module.exports = {

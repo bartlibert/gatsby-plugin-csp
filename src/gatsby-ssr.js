@@ -80,7 +80,7 @@ exports.onPreRenderHTML = (
   }
 
   if (useNginxConf) {
-    saveNginxConf(nginxConfFile, pathname, headerName, cspString(csp));
+    saveNginxConf(nginxConfFile, pathname, cspString(csp));
   }
 
 };
